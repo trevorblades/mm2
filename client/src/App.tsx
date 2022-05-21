@@ -11,13 +11,11 @@ export default function App() {
   const [game, setGame] = useState<Game | null>(null);
 
   useEffect(() => {
-    socket.current = io("localhost:4000");
-
-    socket.current.on("game", (game) => {
-      console.log(game);
-      setGame(game);
-    });
-
+    socket.current = io("localhost:4000")
+      .on("game", setGame)
+      .on("join_error", (message) => {
+        console.log(message);
+      });
     return () => {
       socket.current?.close();
     };
@@ -47,12 +45,7 @@ export default function App() {
         <Input name="room" placeholder="Room code" isRequired />
         <Button type="submit">Join room</Button>
       </form>
-      <Button
-        variant="ghost"
-        onClick={() => {
-          socket.current?.emit("new");
-        }}
-      >
+      <Button variant="ghost" onClick={() => socket.current?.emit("new")}>
         Start game
       </Button>
     </SimpleGrid>

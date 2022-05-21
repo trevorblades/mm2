@@ -22,12 +22,18 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("join", (room) => {
-    socket.join(room);
-    socket.emit("game", {
-      id: room,
-      questions: [],
-    });
+  socket.on("join", async (room) => {
+    const value = await client.get(room);
+
+    if (value) {
+      socket.join(room);
+      socket.emit("game", {
+        id: room,
+        questions: [],
+      });
+    } else {
+      socket.emit("join_error", "Room not found");
+    }
   });
 });
 
