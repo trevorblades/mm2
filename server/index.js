@@ -4,7 +4,7 @@ import nid from "nid";
 
 const io = new Server({
   cors: {
-    origin: "http://localhost:3000",
+    origin: /^http:\/\/localhost:\d{4}/,
   },
 });
 
