@@ -53,6 +53,8 @@ export default function App() {
   }
 
   if (game) {
+    // TODO: set loading=false and game together to avoid double render
+    console.log(game);
     const maze = generate(7, 7, true, game.seed);
     return (
       <>
@@ -70,6 +72,9 @@ export default function App() {
                     borderRightWidth={Number(cell.right)}
                     borderBottomWidth={Number(cell.bottom)}
                     borderLeftWidth={Number(cell.left)}
+                    onClick={() => {
+                      socket.current?.emit("move", cell.x, cell.y);
+                    }}
                   >
                     {cell.x},{cell.y}
                   </Square>

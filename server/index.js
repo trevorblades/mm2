@@ -29,6 +29,7 @@ io.on("connection", (socket) => {
     if (response.ok) {
       const game = {
         id,
+        players: [socket.id],
         questions: await response.json(),
         seed: Math.floor(Math.random() * 1000),
       };
@@ -48,11 +49,15 @@ io.on("connection", (socket) => {
   socket.on("join", async (id) => {
     socket.emit("joining", true);
 
-    const game = await client.get(id);
+    let game = await client.get(id);
 
     if (game) {
+      game = JSON.parse(game);
+      game.players.push(socket.id);
+      await client.set(id, JSON.stringify(game));
+
       socket.join(id);
-      socket.emit("game", JSON.parse(game));
+      io.to(id).emit("game", game);
     }
 
     // TODO: handle errors
