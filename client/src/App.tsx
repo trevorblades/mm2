@@ -1,3 +1,5 @@
+import React, { useEffect, useRef, useState } from "react";
+import generate from "generate-maze";
 import {
   Box,
   Button,
@@ -7,9 +9,7 @@ import {
   Spinner,
   Square,
 } from "@chakra-ui/react";
-import { useEffect, useRef, useState } from "react";
-import { io, Socket } from "socket.io-client";
-import generate from "generate-maze";
+import { Socket, io } from "socket.io-client";
 
 type Game = {
   id: string;
@@ -25,7 +25,7 @@ type Cell = {
   left: boolean;
 };
 
-export default function App() {
+const App = (): JSX.Element => {
   const socket = useRef<Socket | null>(null);
   const [connected, setConnected] = useState(false);
   const [numPlayers, setNumPlayers] = useState(0);
@@ -59,7 +59,9 @@ export default function App() {
     return (
       <>
         {game.id}
-        <Button onClick={() => setGame(null)}>Disconnect</Button>
+        <Button onClick={() => socket.current?.emit("leave", game.id)}>
+          Disconnect
+        </Button>
         <Flex>
           <Box borderWidth={1}>
             {maze.map((cells: Cell[], index) => (
@@ -118,4 +120,6 @@ export default function App() {
       </Button>
     </SimpleGrid>
   );
-}
+};
+
+export default App;

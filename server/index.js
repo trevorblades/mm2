@@ -1,6 +1,6 @@
+import nid from "nid";
 import { Server } from "socket.io";
 import { createClient } from "redis";
-import nid from "nid";
 
 const io = new Server({
   cors: {
@@ -9,6 +9,16 @@ const io = new Server({
 });
 
 const client = createClient();
+
+io.of("/").adapter.on("leave-room", async (room, id) => {
+  const game = await client.get(room).then(JSON.parse);
+  console.log("leaving room");
+  if (game) {
+    game.players = game.players.filter((playerId) => playerId !== id);
+    await client.set(room, JSON.stringify(game));
+    io.to(room).emit("game", game);
+  }
+});
 
 io.on("connection", (socket) => {
   const broadcastNumPlayers = () =>
@@ -49,10 +59,10 @@ io.on("connection", (socket) => {
   socket.on("join", async (id) => {
     socket.emit("joining", true);
 
-    let game = await client.get(id);
+    // FIXME: this might error if client.get resovles null
+    const game = await client.get(id).then(JSON.parse);
 
     if (game) {
-      game = JSON.parse(game);
       game.players.push(socket.id);
       await client.set(id, JSON.stringify(game));
 
@@ -63,6 +73,11 @@ io.on("connection", (socket) => {
     // TODO: handle errors
 
     socket.emit("joining", false);
+  });
+
+  socket.on("leave", (id) => {
+    socket.leave(id);
+    socket.emit("game", null);
   });
 });
 
